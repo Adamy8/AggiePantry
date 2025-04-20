@@ -6,7 +6,7 @@ const Navbar = () => {
     <nav className="bg-white shadow-md py-4 px-15 flex items-center justify-between">
       {/* Logo and Title */}
       <div className="flex items-center space-x-2">
-        <Image src="/logo.svg" alt="The Aggie Pantry" className="h-12 w-12" />
+        <Image src="/logo.svg" alt="The Aggie Pantry" width={48} height={48} />
         <h1 className="text-l font-semibold text-gray-800 pt-2">The Aggie Pantry</h1>
       </div>
 

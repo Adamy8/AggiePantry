@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -11,6 +11,7 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.3.0",
     "@auth0/nextjs-auth0": "^4.4.2",
+    "jose": "^6.0.10",
     "next": "15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
