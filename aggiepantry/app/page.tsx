@@ -13,7 +13,7 @@ export default function Home() {
         className="text-left mb-8 px-20 py-20 rounded-2xl shadow-lg w-3/4"  
       >
         <h1 className="text-6xl font-bold italic text-gray-900 pl-0">Welcome to</h1> 
-        <img 
+        <Image
           src="/basket.svg" 
           alt="Aggie Pantry Logo" 
           className="mx-auto w-105 h-105"  
@@ -29,7 +29,7 @@ export default function Home() {
               className={`p-6 rounded-lg cursor-pointer transition-all ${role === 'shopper' ? 'border-1 border-white' : ''}`}
             >
               <div className="flex flex-col items-center">
-                <img 
+                <Image
                   src="/Shopper.svg" 
                   alt="Shopper Icon" 
                   className="mx-auto w-65 h-65"
@@ -42,7 +42,7 @@ export default function Home() {
               className={`p-6 rounded-lg cursor-pointer transition-all ${role === 'admin' ? 'border-1 border-white' : ''}`}
             >
               <div className="flex flex-col items-center">
-                <img 
+                <Image
                   src="/Admin.svg" 
                   alt="Admin Icon" 
                   className="mx-auto w-65 h-65" 
