@@ -11,10 +11,20 @@
   "dependencies": {
     "@auth0/auth0-react": "^2.3.0",
     "@auth0/nextjs-auth0": "^4.4.2",
+    "@radix-ui/react-slot": "^1.2.0",
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@yudiel/react-qr-scanner": "^2.2.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "jose": "^6.0.10",
+    "lucide-react": "^0.501.0",
     "next": "15.3.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-webcam": "^7.2.0",
+    "tailwind-merge": "^3.2.0",
+    "tw-animate-css": "^1.2.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
