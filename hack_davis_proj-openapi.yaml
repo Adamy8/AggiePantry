@@ -1,0 +1,240 @@
+openapi: 3.0.3
+info:
+  title: Pantry‑Manage API
+  version: "1.1.0"
+  description: |
+    Inventory, checkout and history tracking for Hack‑Davis Pantry.
+    All JSON responses are **wrapped** by `CustomRenderer`:
+      • `success` – boolean  
+      • `message` – status text (see renderer map)  
+      • `data`    – actual payload
+
+servers:
+  - url: https://aggiepantry.ngrok.app         # production
+  - url: http://localhost:8000            # development
+
+# ───────────────────────────────────────────────────────────────────────────────
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # ─── Generic envelope ───────────────────────────────────────────────────────
+  schemas:
+    Envelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: true for 2xx responses, false otherwise
+        message:
+          type: string
+        data:
+          description: Actual response body (see subschemas)
+          nullable: true
+
+    # Domain models (unchanged, kept inside Envelope.data)
+    Item: &Item
+      type: object
+      properties:
+        id:      { type: integer, readOnly: true }
+        name:    { type: string, maxLength: 100 }
+        count:   { type: integer }
+        origin:  { type: string, maxLength: 100 }
+        vegan:   { type: boolean }
+        organic: { type: boolean }
+        limit:   { type: integer }
+        picture: { type: string, format: uri, nullable: true }
+      required: [name, count, origin, vegan, organic, limit]
+
+    ItemHistory:
+      type: object
+      properties:
+        item: { <<: *Item }
+        num:  { type: integer }
+        time: { type: string, description: MM/DD/YYYY HH:MM }
+      required: [item, num, time]
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+  # Helper to inject any schema into the envelope
+  # (OpenAPI has no generics, so we use allOf each time)
+  responses:
+    WrappedArrayItems:
+      description: Array of items
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Item' }
+    WrappedItem:
+      description: Single item
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Item' }
+    WrappedHistoryArray:
+      description: Array of ItemHistory
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ItemHistory' }
+    WrappedCheckoutOK:
+      description: Checkout confirmation
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    example: { message: "Checkout successful" }
+    WrappedError:
+      description: Error wrapper
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Envelope'
+              - type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Error' }
+
+# ───────────────────────────────────────────────────────────────────────────────
+paths:
+
+  /api/items/:
+    get:
+      tags: [Items]
+      summary: List inventory
+      security: [{ BearerAuth: [] }]
+      responses: { "200": { $ref: '#/components/responses/WrappedArrayItems' } }
+
+    post:
+      tags: [Items]
+      summary: Create a new item (staff only)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Item' }
+      responses:
+        "201": { $ref: '#/components/responses/WrappedItem' }
+        "403": { $ref: '#/components/responses/WrappedError' }
+
+  /api/items/{id}/:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Items]
+      summary: Retrieve an item
+      security: [{ BearerAuth: [] }]
+      responses: { "200": { $ref: '#/components/responses/WrappedItem' } }
+
+    put:
+      tags: [Items]
+      summary: Replace an item (staff)
+      security: [{ BearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Item' } } } }
+      responses:
+        "200": { $ref: '#/components/responses/WrappedItem' }
+        "403": { $ref: '#/components/responses/WrappedError' }
+
+    patch:
+      tags: [Items]
+      summary: Partially update (staff)
+      security: [{ BearerAuth: [] }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Item' } } } }
+      responses:
+        "200": { $ref: '#/components/responses/WrappedItem' }
+        "403": { $ref: '#/components/responses/WrappedError' }
+
+    delete:
+      tags: [Items]
+      summary: Delete (staff)
+      security: [{ BearerAuth: [] }]
+      responses:
+        "204":
+          description: Deletion returns envelope with null data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    example: { success: true, message: "successfully deleted", data: null }
+        "403": { $ref: '#/components/responses/WrappedError' }
+
+  /api/itemHistory/:
+    get:
+      tags: [ItemHistory]
+      summary: List current user's history
+      security: [{ BearerAuth: [] }]
+      responses: { "200": { $ref: '#/components/responses/WrappedHistoryArray' } }
+
+    post:
+      tags: [ItemHistory]
+      summary: Add history record (staff)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item: { type: string }
+                num:  { type: integer }
+              required: [item, num]
+      responses:
+        "201": { $ref: '#/components/responses/WrappedHistoryArray' }
+        "403": { $ref: '#/components/responses/WrappedError' }
+
+  /api/checkout/:
+    post:
+      tags: [Checkout]
+      summary: Bulk checkout (staff)
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token: { type: string }
+                items:
+                  type: array
+                  items: { type: string }
+              required: [token, items]
+      responses:
+        "200": { $ref: '#/components/responses/WrappedCheckoutOK' }
+        "400": { $ref: '#/components/responses/WrappedError' }
+        "404": { $ref: '#/components/responses/WrappedError' }
+        "403": { $ref: '#/components/responses/WrappedError' }
